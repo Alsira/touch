@@ -22,10 +22,10 @@ func main() {
 	}
 
 	/* These are the flags for the command so far */
-	accessTimeFlag := flag.Duration("a", time.Now(), "Change file(s) access and modification time.")
-	modifyFlag := flag.Duration("m", time.Now(), "Change only the file(s) modification time.")
+	accessTimeFlag := flag.String("a", time.Now().String(), "Change file(s) access and modification time.")
+	modifyFlag := flag.String("m", time.Now().String(), "Change only the file(s) modification time.")
 	referenceFlag := flag.Bool("r", false, "Changes the time-stamp of file(s) with a reference")
-	timeFlag := flag.Duration("t", time.Now(), "Create and set the time of the file.")
+	timeFlag := flag.String("t", time.Now().String(), "Create and set the time of the file.")
 	createFlag := flag.Bool("c", false, "Will not create the file(s) if it already exists.")
 
 	flag.Parse()
