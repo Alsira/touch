@@ -1,6 +1,8 @@
 /*********************************************************************************
+*                                                                                *
 *	AUTHOR : Tyler Johnson                                                       *
 *	DESCRIPTION : This should work like touch on linux. Made it for some fun.    *
+*                                                                                *
 **********************************************************************************/
 
 package main
@@ -22,20 +24,127 @@ func main() {
 	}
 
 	/* These are the flags for the command so far */
-	accessTimeFlag := flag.String("a", time.Now().String(), "Change file(s) access and modification time.")
-	modifyFlag := flag.String("m", time.Now().String(), "Change only the file(s) modification time.")
-	referenceFlag := flag.Bool("r", false, "Changes the time-stamp of file(s) with a reference")
-	timeFlag := flag.String("t", time.Now().String(), "Create and set the time of the file.")
+	accessTimeFlag := flag.String("a", "NULL", "Change file(s) access time only")
 	createFlag := flag.Bool("c", false, "Will not create the file(s) if it already exists.")
+	dateFlag := flag.String("d", "NULL", "Parses date given and uses it instead of current time.")
+	flag.Bool("f", false, "IGNORED")
+
+	/* Might need to add the -h, --nodereference flag */
+
+	modifyFlag := flag.String("m", "NULL", "Change only the file(s) modification time.")
+	referenceFlag := flag.Bool("r", false, "Changes the time-stamp of file(s) with a reference")
+	timeFlag := flag.String("t", "NULL", "Create and set the time of the file.")
+	
 
 	flag.Parse()
-	
+
+	/* Array of file arguments */
+	fileArgs := os.Args[(len(os.Args) - flag.NArg()):]
+
+	if len(fileArgs) < 1 {
+		fmt.Errorf("ERROR : Files not provided.\n")
+		os.Exit(-1)
+	}
+
 	/* If the create flag is set */
 	if *createFlag {
 
-		// TODO Gotta see if the reference Flag to see if we are using a reference file
+		/* If reference file is used */
+		if *referenceFlag {
 
-	}
+			/* Check if 2 or more files are there*/
+			
+			if len(fileArgs) < 2 {
+				fmt.Errorf("ERROR : Not enough files provided.\n")
+				os.Exit(-1)
+			}
+
+			referenceFilePath := fileArgs[0]
+			
+			refAccessTime, err := GetFileAccessTime(referenceFilePath)
+			if err != nil {
+
+				fmt.Errorf(err.Error() + "\n")
+				os.Exit(-1)
+
+			}
+			
+			refModTime, err := GetFileModificationTime(referenceFilePath)
+			if err != nil {
+
+				fmt.Errorf(err.Error() + "\n")
+				os.Exit(-1)
+
+			}
+
+			/* If we want to change the access time only */
+			if *accessTimeFlag != "NULL" {
+				
+				/* Loop through the files requiring changes */
+				for _, file := range fileArgs[1:] {
+
+					
+					mtime, err := GetFileModificationTime(file)
+						
+					if err == nil {
+
+						/* This also returns an error, so if we need error checking here remember this */
+						os.Chtimes(file, refAccessTime, mtime)
+
+					}
+
+					
+
+				} /* End of for loop */
+			
+				
+			
+			} else if *modifyFlag != "NULL" {
+
+				/* Loop through files and change their modification times */
+				for _, file := range fileArgs[1:] {
+
+					atime, err := GetFileAccessTime(file)
+					
+					/* May want to do error checking. IDK */
+					if err == nil {
+
+						/* REMEMEBER this also returns an error, so if there is any error checking, this would help */
+						os.Chtimes(file, atime, refModTime)
+
+					}
+
+				} /* End of for loop */
+				
+			/* If not specified this kinda just changes mod and access time */
+			} else {
+
+				for _, file := range fileArgs[1:] {
+
+					atime, err1 := GetFileAccessTime(file)
+					mtime, err2 := GetFileModificationTime(file)
+
+					if err1 == nil && err2 == nil {
+
+						/* Again, remeber that this changes both and also returns an error */
+						os.Chtimes(file, atime, mtime)
+
+					}
+					
+
+				}
+
+			}
+
+		} else { /* End of reference flag check */
+
+
+			// TODO : Kinda got to handle setting the files with reference
+
+
+		}
+
+	} /* End of create flag check */
 
 	os.Exit(0)
 
