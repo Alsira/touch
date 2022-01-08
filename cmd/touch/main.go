@@ -8,9 +8,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"flag"
 	"time"
 )
 
@@ -23,18 +23,22 @@ func main() {
 		os.Exit(-1)
 	}
 
+	currentTime := time.Now().Format(time.UnixDate)
+
 	/* These are the flags for the command so far */
-	accessTimeFlag := flag.String("a", "NULL", "Change file(s) access time only")
+	accessTimeFlag := flag.String("a", currentTime, "Change file(s) access time only")
 	createFlag := flag.Bool("c", false, "Will not create the file(s) if it already exists.")
-	dateFlag := flag.String("d", "NULL", "Parses date given and uses it instead of current time.")
+	dateFlag := flag.String("d", currentTime, "Parses date given and uses it instead of current time.")
+	_ = dateFlag
+
 	flag.Bool("f", false, "IGNORED")
 
-	/* Might need to add the -h, --nodereference flag */
+	/* Might need to add the -h, --nodereference flag to the list */
 
-	modifyFlag := flag.String("m", "NULL", "Change only the file(s) modification time.")
+	modifyFlag := flag.String("m", currentTime, "Change only the file(s) modification time.")
 	referenceFlag := flag.Bool("r", false, "Changes the time-stamp of file(s) with a reference")
-	timeFlag := flag.String("t", "NULL", "Create and set the time of the file.")
-	
+	timeFlag := flag.String("t", currentTime, "Create and set the time of the file.")
+	_ = timeFlag
 
 	flag.Parse()
 
@@ -53,14 +57,14 @@ func main() {
 		if *referenceFlag {
 
 			/* Check if 2 or more files are there*/
-			
+
 			if len(fileArgs) < 2 {
 				fmt.Errorf("ERROR : Not enough files provided.\n")
 				os.Exit(-1)
 			}
 
 			referenceFilePath := fileArgs[0]
-			
+
 			refAccessTime, err := GetFileAccessTime(referenceFilePath)
 			if err != nil {
 
@@ -68,7 +72,7 @@ func main() {
 				os.Exit(-1)
 
 			}
-			
+
 			refModTime, err := GetFileModificationTime(referenceFilePath)
 			if err != nil {
 
@@ -78,14 +82,13 @@ func main() {
 			}
 
 			/* If we want to change the access time only */
-			if *accessTimeFlag != "NULL" {
-				
+			if *accessTimeFlag != currentTime {
+
 				/* Loop through the files requiring changes */
 				for _, file := range fileArgs[1:] {
 
-					
 					mtime, err := GetFileModificationTime(file)
-						
+
 					if err == nil {
 
 						/* This also returns an error, so if we need error checking here remember this */
@@ -93,19 +96,17 @@ func main() {
 
 					}
 
-					
-
 				} /* End of for loop */
-			
-				
-			
-			} else if *modifyFlag != "NULL" {
+
+			}
+
+			if *modifyFlag != currentTime {
 
 				/* Loop through files and change their modification times */
 				for _, file := range fileArgs[1:] {
 
 					atime, err := GetFileAccessTime(file)
-					
+
 					/* May want to do error checking. IDK */
 					if err == nil {
 
@@ -115,8 +116,8 @@ func main() {
 					}
 
 				} /* End of for loop */
-				
-			/* If not specified this kinda just changes mod and access time */
+
+				/* If not specified this kinda just changes mod and access time */
 			} else {
 
 				for _, file := range fileArgs[1:] {
@@ -130,7 +131,6 @@ func main() {
 						os.Chtimes(file, atime, mtime)
 
 					}
-					
 
 				}
 
@@ -138,9 +138,12 @@ func main() {
 
 		} else { /* End of reference flag check */
 
-
 			// TODO : Kinda got to handle setting the files with reference
 
+			/* Handle access time flag */
+			if *accessTimeFlag != currentTime {
+
+			}
 
 		}
 
