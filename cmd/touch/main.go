@@ -6,6 +6,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
@@ -18,6 +19,15 @@ func main() {
 		os.Exit(-1)
 	}
 
+	flag.Usage = Usage
+
+	if os.Args[1] == "--help" || os.Args[1] == "/?" {
+
+		flag.Usage()
+		os.Exit(0)
+
+	}
+
 	for i := 1; i < len(os.Args); i++ {
 
 		_, err := os.Create(os.Args[i])
@@ -25,11 +35,10 @@ func main() {
 		if err != nil {
 			fmt.Errorf("ERROR : Cannot create file %s", os.Args[i])
 			os.Exit(-1)
-		} 
+		}
 
-		
 	}
-	
+
 	os.Exit(0)
 
 }
