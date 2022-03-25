@@ -2,7 +2,7 @@
 *                                                                                *
 *	AUTHOR : Tyler Johnson                                                       *
 *	DESCRIPTION : This should work like touch on linux. Made it for some fun.    *
-*                                                                                *
+*   EDIT : It wasn't fun                                                         *
 **********************************************************************************/
 
 package main
@@ -19,7 +19,7 @@ func main() {
 
 	/* Gotta have some arguments. This just makes eveything easier to leave instead of processing the rest */
 	if len(os.Args) < 2 {
-		fmt.Errorf("ERROR : Not enough arguments given.\n")
+		_ = fmt.Errorf("%s", "ERROR : Not enough arguments given.\n")
 		os.Exit(-1)
 	}
 
@@ -46,7 +46,7 @@ func main() {
 	fileArgs := os.Args[(len(os.Args) - flag.NArg()):]
 
 	if len(fileArgs) < 1 {
-		fmt.Errorf("ERROR : Files not provided.\n")
+		_ = fmt.Errorf("%s", "ERROR : Files not provided.\n")
 		os.Exit(-1)
 	}
 
@@ -59,7 +59,7 @@ func main() {
 			/* Check if 2 or more files are there*/
 
 			if len(fileArgs) < 2 {
-				fmt.Errorf("ERROR : Not enough files provided.\n")
+				_ = fmt.Errorf("%s", "ERROR : Not enough files provided.\n")
 				os.Exit(-1)
 			}
 
@@ -68,7 +68,7 @@ func main() {
 			refAccessTime, err := GetFileAccessTime(referenceFilePath)
 			if err != nil {
 
-				fmt.Errorf(err.Error() + "\n")
+				fmt.Errorf("%s", err.Error()+"\n")
 				os.Exit(-1)
 
 			}
@@ -76,7 +76,7 @@ func main() {
 			refModTime, err := GetFileModificationTime(referenceFilePath)
 			if err != nil {
 
-				fmt.Errorf(err.Error() + "\n")
+				_ = fmt.Errorf("%s", err.Error()+"\n")
 				os.Exit(-1)
 
 			}
@@ -138,10 +138,55 @@ func main() {
 
 		} else { /* End of reference flag check */
 
+			layout := "Mon Jan 02 2006 15:04:05 GMT-0700"
+
 			// TODO : Kinda got to handle setting the files with reference
 
 			/* Handle access time flag */
 			if *accessTimeFlag != currentTime {
+
+				/* This will parse the time */
+				time, err := time.Parse(layout, *accessTimeFlag)
+				if err != nil {
+					fmt.Errorf("%s", err.Error())
+				}
+
+				/* Go through each file */
+				for _, file := range fileArgs {
+					modTime, err := GetFileModificationTime(file)
+					if err != nil {
+						fmt.Errorf("%s", err.Error())
+					}
+
+					err = os.Chtimes(file, time, modTime)
+					if err != nil {
+						fmt.Errorf("%s", err.Error())
+					}
+				}
+
+			}
+
+			/* Set modification time */
+			if *modifyFlag != currentTime {
+
+				time, err := time.Parse(layout, *modifyFlag)
+				if err != nil {
+					fmt.Errorf("%s", err.Error())
+				}
+
+				for _, file := range fileArgs {
+
+					atime, err := GetFileAccessTime(file)
+					if err != nil {
+						fmt.Errorf("%s", err.Error())
+					}
+
+					err = os.Chtimes(file, atime, time)
+					if err != nil {
+						fmt.Errorf("%s", err.Error())
+					}
+
+				}
 
 			}
 
